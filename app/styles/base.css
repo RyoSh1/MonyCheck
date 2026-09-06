@@ -1,0 +1,153 @@
+/* Reglas estructurales comunes a ambos temas: tamaños, espaciados, formas.
+   Los colores de cada tema se definen aparte en light.css / dark.css. */
+
+QPushButton {
+    min-height: 36px;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+/* Botones cuadrados de icono: ✎ en las entradas */
+QPushButton#iconButton {
+    min-width: 36px;
+    max-width: 36px;
+    min-height: 36px;
+    max-height: 36px;
+    padding: 0;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+/* Fila de etiqueta + importe: alturas fijadas aquí (min y max al mismo
+   valor) para que la fila quede perfectamente alineada. Un botón con menú
+   o un input, sin esto, calculan cada uno una altura "natural" distinta.
+   OJO: min/max-height en Qt son el tamaño del CONTENIDO; el padding y el
+   borde (1px, ver light.css/dark.css) se suman por fuera. Para que el
+   control mida X px en total hay que declarar X - padding_vertical - 2px
+   de borde. Aquí el objetivo es 48px de alto total en toda la fila. */
+QPushButton#tagMenuButton {
+    min-height: 38px; /* 48 - 8 (padding 4px arriba/abajo) - 2 (borde) */
+    max-height: 38px;
+    text-align: left;
+    padding: 4px 14px;
+}
+
+QPushButton#tagsGearButton {
+    min-width: 46px; /* 48 - 0 (sin padding) - 2 (borde) */
+    max-width: 46px;
+    min-height: 46px;
+    max-height: 46px;
+    padding: 0;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+/* Botones +/- fusionados en un único control dividido en dos mitades:
+   el conjunto mide lo mismo que el resto de la fila (48px = 24+24) */
+QPushButton#btnPlus, QPushButton#btnMinus {
+    min-width: 62px; /* 64 - 0 (sin padding) - 2 (borde) */
+    max-width: 62px;
+    min-height: 22px; /* 24 - 0 (sin padding) - 2 (borde) */
+    max-height: 22px;
+    padding: 0;
+    font-size: 15px;
+    font-weight: bold;
+}
+QPushButton#btnPlus {
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+QPushButton#btnMinus {
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+
+/* Botón de acción principal (crear BD, etc.) */
+QPushButton#primaryButton {
+    min-height: 48px;
+    font-size: 15px;
+    font-weight: bold;
+    color: white;
+}
+
+/* Fila de la lista de bases de datos en la pantalla inicial */
+QPushButton#dbListButton {
+    min-height: 56px;
+    max-height: 56px;
+    text-align: left;
+    padding: 6px 16px;
+    font-size: 14px;
+}
+
+QLineEdit {
+    min-height: 44px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+/* Campo de importe: misma altura que el resto de la fila (ver comentario
+   junto a QPushButton#tagMenuButton más arriba) */
+QLineEdit#montoInput {
+    min-height: 38px; /* 48 - 8 (padding 4px arriba/abajo) - 2 (borde) */
+    max-height: 38px;
+    padding: 4px 10px;
+}
+
+QComboBox {
+    min-height: 36px;
+    padding: 2px 10px;
+    border-radius: 6px;
+}
+
+/* Tarjetas que agrupan cada columna de la pantalla de gastos */
+QWidget#card {
+    border-radius: 8px;
+    border-width: 1px;
+    border-style: solid;
+    padding: 8px;
+    margin: 2px;
+}
+
+#col_title {
+    font-weight: bold;
+    font-size: 16px;
+    border-radius: 6px;
+    padding: 5px;
+    margin-bottom: 6px;
+}
+
+QScrollArea {
+    border: none;
+}
+
+QScrollBar:vertical {
+    width: 10px;
+    border-radius: 5px;
+}
+
+QScrollBar::handle:vertical {
+    background: #bdc3c7;
+    min-height: 20px;
+    border-radius: 5px;
+}
+
+QTableWidget {
+    gridline-color: #ddd;
+    font-size: 12px;
+}
+
+QTableWidget::item {
+    padding: 5px;
+}
+
+QHeaderView::section {
+    padding: 5px;
+    border: none;
+    font-weight: bold;
+}

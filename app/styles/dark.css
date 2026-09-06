@@ -1,0 +1,70 @@
+/* Tokens de color para el tema oscuro */
+
+QWidget {
+    background-color: #2b2f33;
+    color: #ecf0f1;
+}
+
+QPushButton {
+    background-color: #3c4146;
+    border: 1px solid #555;
+    color: #ecf0f1;
+}
+
+QPushButton:hover {
+    background-color: #4a4f55;
+}
+
+QPushButton#primaryButton {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+}
+
+QPushButton#primaryButton:hover {
+    background-color: #45a049;
+}
+
+QPushButton#dbListButton {
+    background-color: #3c4146;
+    border: 1px solid #555;
+}
+
+QPushButton#dbListButton:hover {
+    background-color: #35424a;
+    border: 1px solid #4CAF50;
+}
+
+QLineEdit, QComboBox {
+    background-color: #3c4146;
+    border: 1px solid #555;
+    color: #ecf0f1;
+}
+
+QWidget#card {
+    background-color: #33383d;
+    border-color: #555;
+}
+
+#col_title {
+    background-color: #3c4146;
+    color: #ecf0f1;
+}
+
+QScrollArea, QScrollArea > QWidget > QWidget {
+    background-color: transparent;
+}
+
+QScrollBar:vertical {
+    background: #33383d;
+}
+
+QTableWidget {
+    background-color: #33383d;
+    color: #ecf0f1;
+}
+
+QHeaderView::section {
+    background-color: #3c4146;
+    color: #ecf0f1;
+}
