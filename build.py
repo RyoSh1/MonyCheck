@@ -1,21 +1,15 @@
 import PyInstaller.__main__
-import platform
 import shutil
 import os
 
 def build_app():
-    system = platform.system().lower()
-    
     # Configuración común
     app_name = "MonyCheck"
     entry_point = "main.py"
     additional_files = []
     
-    # Configuración específica por sistema operativo
-    if system == "windows":
-        icon = "app/resources/icon.ico"
-    else:  # linux
-        icon = "app/resources/icon.png"
+    # Icono único: PyInstaller lo usa en Windows y lo ignora en Linux/macOS
+    icon = "app/resources/MonyCheck.ico"
     
     # Directorio de construcción
     build_dir = "build"

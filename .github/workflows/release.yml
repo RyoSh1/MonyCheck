@@ -1,0 +1,79 @@
+---
+# Starts on tag release with vX.Y.. pattern
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  # JOB 1 : Security Analysis
+  # Reminder -- Github runs this on Azure machine
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check code
+        uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install sec tools for SAST
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install bandit pip-audit
+
+      - name: Bandit analysis (SAST)
+        run: bandit -r . -ll -x ./venv
+
+      - name: pip-audit (dependencies)
+        run: pip-audit -r requirements.txt
+
+  # JOB 2 : Create a build and a release for Linux and Windows
+  build-and-release:
+    # Depends on security green flag
+    needs: security
+    # write permissions for release
+    permissions:
+      contents: write
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            asset_suffix: linux
+          - os: windows-latest
+            asset_suffix: windows
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: exec build
+        run: python3 build.py
+
+      - name: Zip dist folder (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          cd dist
+          zip MonyCheck-${{ github.ref_name }}-${{ matrix.asset_suffix }}.zip .
+
+      - name: Zip dist folder (Windows)
+        if: runner.os == 'Windows'
+        run: Compress-Archive -Path dist\* -DestinationPath dist\MonyCheck-${{ github.ref_name }}-${{ matrix.asset_suffix }}.zip
+
+      - name: Create Release in Github
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/MonyCheck-${{ github.ref_name }}-${{ matrix.asset_suffix }}.zip
+          generate_release_notes: true
