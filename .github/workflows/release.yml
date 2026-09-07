@@ -62,6 +62,9 @@ jobs:
       - name: exec build
         run: python3 build.py
 
+      - name: Debug dist folder
+        run: ls -la dist
+
       - name: Zip dist folder (Linux)
         if: runner.os == 'Linux'
         run: |
