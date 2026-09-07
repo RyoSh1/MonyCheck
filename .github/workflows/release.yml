@@ -63,6 +63,7 @@ jobs:
         run: python3 build.py
 
       - name: Debug dist folder
+        shell: bash
         run: ls -la dist
 
       - name: Zip dist folder (Linux)
