@@ -1,11 +1,13 @@
-import sqlite3
+from sqlcipher3 import dbapi2 as sqlite3
 from datetime import datetime
 from pathlib import Path
 from PyQt5.QtWidgets import QMessageBox
+from ..utils.db_security import pragma_key_sql
 
 class DatabaseManager:
-    def __init__(self, db_path="gastos.db"):
+    def __init__(self, db_path, password=""):
         self.db_path = db_path
+        self.password = password
         self._initialize_db()
 
     def _initialize_db(self):
@@ -40,8 +42,11 @@ class DatabaseManager:
             QMessageBox.critical(None, "Error de BD", f"No se pudo inicializar la BD: {str(e)}")
 
     def _get_connection(self):
-        """Retorna una conexión a la base de datos"""
-        return sqlite3.connect(self.db_path)
+        """Retorna una conexión a la base de datos, cifrada si hay contraseña"""
+        conn = sqlite3.connect(self.db_path)
+        if self.password:
+            conn.execute(pragma_key_sql(self.password))
+        return conn
 
     def agregar_gasto(self, tag, gasto, comentario=""):
         """Añade un nuevo gasto a la base de datos"""
@@ -50,8 +55,8 @@ class DatabaseManager:
                 cursor = conn.cursor()
                 cursor.execute("""
                     INSERT INTO gastos (tag, gasto, timestamp, comentario)
-                    VALUES (?, ?, ?, ?)
-                """, (tag, gasto, datetime.now().isoformat(), comentario))
+                    VALUES (? , ?, ?, ?)
+                """, (tag, gasto, datetime.now().isoformat(), comentario)) # Maybe aquí se puede añadir en tag o comentario algo ejecutable
                 conn.commit()
             return True
         except Exception as e:

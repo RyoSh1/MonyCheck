@@ -5,7 +5,7 @@ from app.views.second_view import SecondView
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("GastoCheck")
+        self.setWindowTitle("MonyCheck")
         self.setGeometry(100, 100, 1100, 700)
 
         self.stacked_widget = QStackedWidget()
@@ -37,6 +37,7 @@ class MainWindow(QMainWindow):
             if not db_path:
                 QMessageBox.warning(self, "Error", "No se proporcionó la ruta a la BD.")
                 return
+            path, password = db_path
 
             # eliminar la segunda vista anterior (si existe) para no acumular widgets
             if self.current_second_view is not None:
@@ -45,7 +46,7 @@ class MainWindow(QMainWindow):
                 self.current_second_view = None
 
             # crear nueva instancia de SecondView con la BD seleccionada
-            self.current_second_view = SecondView(db_path)
+            self.current_second_view = SecondView(path, password)
             self.current_second_view.navigate_requested.connect(self.navigate_to)
             self.current_second_view.toggle_theme_requested.connect(self.toggle_theme)
             self.current_second_view.aplicar_tema(self.dark_mode)

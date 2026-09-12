@@ -88,7 +88,7 @@ class EditarGastoDialog(QDialog):
             importe = abs(importe)
 
         tag = self.combo_etiqueta.currentText()
-        comentario = self.input_comentario.text().strip()
+        comentario = self.input_comentario.text().strip() # Aquí maybe puede hacerse un ataque
 
         if self.db.actualizar_gasto(self.id_gasto, tag, importe, comentario):
             self.accept()

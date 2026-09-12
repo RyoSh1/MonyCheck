@@ -16,11 +16,11 @@ class SecondView(QWidget):
     navigate_requested = pyqtSignal(str)
     toggle_theme_requested = pyqtSignal()  # Nueva señal para cambiar tema
 
-    def __init__(self, db_path):
+    def __init__(self, db_path, password=""):
         super().__init__()
         # Sin esto, un QWidget no pinta su fondo de QSS al no ser ventana de nivel superior
         self.setAttribute(Qt.WA_StyledBackground, True)
-        self.db = DatabaseManager(db_path)
+        self.db = DatabaseManager(db_path, password)
         self.init_ui()
         self.aplicar_tema(False)
     
@@ -93,7 +93,7 @@ class SecondView(QWidget):
         validator = DecimalValidator(-999999, 999999, 2, self)
         validator.setNotation(QDoubleValidator.StandardNotation)
         self.search_input.setValidator(validator) # Solo números
-        self.search_input.returnPressed.connect(self._guardar_gasto_directo)
+        self.search_input.returnPressed.connect(lambda: self._guardar_gasto(positivo=None))
 
         # Botones +/- fusionados en un único control dividido en dos mitades
         buttons_column = QVBoxLayout()
@@ -377,26 +377,11 @@ class SecondView(QWidget):
             except ValueError:
                 QMessageBox.warning(self, "Valor inválido", "Formato: 25,99 o 25.99")
                 return
-
-            cantidad = abs(cantidad) if positivo else -abs(cantidad)
-            self._registrar_gasto(cantidad)
-
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error inesperado: {str(e)}")
-
-    def _guardar_gasto_directo(self):
-        """Guarda un gasto al pulsar Enter: el signo escrito decide si es ingreso o gasto"""
-        try:
-            cantidad_texto = self.search_input.text().strip()
-            if not cantidad_texto:
-                return
-
-            try:
-                cantidad = parse_monto(cantidad_texto)
-            except ValueError:
-                QMessageBox.warning(self, "Valor inválido", "Formato: 25,99 o -25,99")
-                return
-
+            if positivo == True:
+                cantidad = abs(cantidad)
+            elif positivo == False:
+                cantidad = -abs(cantidad)
+                
             self._registrar_gasto(cantidad)
 
         except Exception as e:
