@@ -1,14 +1,46 @@
-from sqlcipher3 import dbapi2 as sqlite3
+import atexit
+import os
+import shutil
+import sqlite3
+import tempfile
 from datetime import datetime
-from pathlib import Path
 from PyQt5.QtWidgets import QMessageBox
-from ..utils.db_security import pragma_key_sql
+from ..utils.db_security import cifrar_archivo, descifrar_archivo, es_archivo_cifrado, generar_clave
 
 class DatabaseManager:
     def __init__(self, db_path, password=""):
         self.db_path = db_path
         self.password = password
+        self._temp_dir = None
+        self._ruta_trabajo = db_path
+        self._salt = None
+        self._clave = None
+
+        if password:
+            self._temp_dir = tempfile.mkdtemp(prefix="monycheck_")
+            self._ruta_trabajo = os.path.join(self._temp_dir, "datos.db")
+            if os.path.exists(db_path) and es_archivo_cifrado(db_path):
+                self._salt, self._clave = descifrar_archivo(db_path, self._ruta_trabajo, password)
+            else:
+                self._salt, self._clave = generar_clave(password)
+            atexit.register(self.cerrar) # Para cerrar de forma limpia en caso de excepciones
+
         self._initialize_db()
+        self._guardar_si_cifrado()
+
+    def cerrar(self):
+        """Borra la copia de trabajo descifrada. Seguro llamarlo varias veces
+        (se registra también en atexit como red de seguridad ante un cierre
+        abrupto de la app, además de la llamada explícita al navegar)."""
+        if self._temp_dir and os.path.exists(self._temp_dir):
+            shutil.rmtree(self._temp_dir, ignore_errors=True)
+        self._temp_dir = None
+
+    def _guardar_si_cifrado(self):
+        """Vuelca la copia de trabajo cifrada sobre el fichero real. Se llama
+        tras cada escritura para que el fichero en disco esté siempre al día"""
+        if self.password:
+            cifrar_archivo(self._ruta_trabajo, self.db_path, self._salt, self._clave)
 
     def _initialize_db(self):
         """Crea la base de datos y tablas si no existen"""
@@ -42,11 +74,8 @@ class DatabaseManager:
             QMessageBox.critical(None, "Error de BD", f"No se pudo inicializar la BD: {str(e)}")
 
     def _get_connection(self):
-        """Retorna una conexión a la base de datos, cifrada si hay contraseña"""
-        conn = sqlite3.connect(self.db_path)
-        if self.password:
-            conn.execute(pragma_key_sql(self.password))
-        return conn
+        """Retorna una conexión a la copia de trabajo (sin cifrar)"""
+        return sqlite3.connect(self._ruta_trabajo)
 
     def agregar_gasto(self, tag, gasto, comentario=""):
         """Añade un nuevo gasto a la base de datos"""
@@ -55,9 +84,10 @@ class DatabaseManager:
                 cursor = conn.cursor()
                 cursor.execute("""
                     INSERT INTO gastos (tag, gasto, timestamp, comentario)
-                    VALUES (? , ?, ?, ?)
-                """, (tag, gasto, datetime.now().isoformat(), comentario)) # Maybe aquí se puede añadir en tag o comentario algo ejecutable
+                    VALUES (?, ?, ?, ?)
+                """, (tag, gasto, datetime.now().isoformat(), comentario))
                 conn.commit()
+            self._guardar_si_cifrado()
             return True
         except Exception as e:
             QMessageBox.critical(None, "Error", f"No se pudo guardar el gasto: {str(e)}")
@@ -73,6 +103,7 @@ class DatabaseManager:
                     WHERE id = ?
                 """, (tag, gasto, comentario, id_gasto))
                 conn.commit()
+            self._guardar_si_cifrado()
             return True
         except Exception as e:
             QMessageBox.critical(None, "Error", f"No se pudo actualizar el gasto: {str(e)}")
@@ -110,7 +141,7 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                
+
                 if dias:
                     query = """
                         SELECT id, tag, gasto, timestamp, comentario
@@ -128,11 +159,12 @@ class DatabaseManager:
                         ORDER BY timestamp DESC
                     """
                     cursor.execute(query)
-                
+
                 return cursor.fetchall()  # Retorna lista de tuplas (id, tag, gasto, timestamp)
         except Exception as e:
             print(f"Error obteniendo gastos por periodo: {str(e)}")
             return []
+
     def agregar_tag(self, nombre_tag):
         """Añade un nuevo tag a la base de datos"""
         try:
@@ -140,6 +172,7 @@ class DatabaseManager:
                 cursor = conn.cursor()
                 cursor.execute("INSERT INTO tags (nombre) VALUES (?)", (nombre_tag,))
                 conn.commit()
+            self._guardar_si_cifrado()
             return True
         except sqlite3.IntegrityError:
             QMessageBox.warning(None, "Tag existente", "Esta etiqueta ya existe")
@@ -155,12 +188,13 @@ class DatabaseManager:
                 cursor = conn.cursor()
                 # Actualizar gastos con este tag a 'compra' (tag por defecto)
                 cursor.execute("""
-                    UPDATE gastos SET tag = 'compra' 
+                    UPDATE gastos SET tag = 'compra'
                     WHERE tag = ?
                 """, (nombre_tag,))
                 # Eliminar el tag
                 cursor.execute("DELETE FROM tags WHERE nombre = ?", (nombre_tag,))
                 conn.commit()
+            self._guardar_si_cifrado()
             return True
         except Exception as e:
             QMessageBox.critical(None, "Error", f"No se pudo eliminar tag: {str(e)}")

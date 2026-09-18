@@ -86,8 +86,8 @@ class HomeView(QWidget):
             return
         password = dialogo.get_password()
 
-        # inicializamos la BD (usa tu ruta de import correcta
-        DatabaseManager(path, password)
+        # inicializamos la BD y cerramos: SecondView abrirá su propia conexión
+        DatabaseManager(path, password).cerrar()
         self.refrescar_lista_bd()
         # navegamos a la segunda pantalla con la BD recién creada
         self.navigate_requested.emit("second", (path, password))

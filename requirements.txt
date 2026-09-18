@@ -1,4 +1,4 @@
 PyQt5>=5.15.7
 PyQtChart>=5.15.6
 pyinstaller>=6.0,<7.0
-sqlcipher3-binary>=0.5.0
+cryptography>=42.0

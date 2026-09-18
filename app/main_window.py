@@ -23,8 +23,19 @@ class MainWindow(QMainWindow):
         # mostrar home
         self.navigate_to("home", None)
 
+    def _cerrar_second_view_actual(self):
+        """Cierra la BD de la vista actual (borra su copia de trabajo
+        descifrada) y descarta el widget, tanto al volver a Home como al
+        cambiar a otra BD."""
+        if self.current_second_view is not None:
+            self.current_second_view.db.cerrar()
+            self.stacked_widget.removeWidget(self.current_second_view)
+            self.current_second_view.deleteLater()
+            self.current_second_view = None
+
     def navigate_to(self, view_name, db_path=None):
         if view_name == "home":
+            self._cerrar_second_view_actual()
             # refrescar la lista por si crearon una BD mientras tanto
             try:
                 self.home_view.refrescar_lista_bd()
@@ -39,11 +50,7 @@ class MainWindow(QMainWindow):
                 return
             path, password = db_path
 
-            # eliminar la segunda vista anterior (si existe) para no acumular widgets
-            if self.current_second_view is not None:
-                self.stacked_widget.removeWidget(self.current_second_view)
-                self.current_second_view.deleteLater()
-                self.current_second_view = None
+            self._cerrar_second_view_actual()
 
             # crear nueva instancia de SecondView con la BD seleccionada
             self.current_second_view = SecondView(path, password)
